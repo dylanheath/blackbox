@@ -428,6 +428,11 @@ function App() {
     <div className="chat-container">
       <div className="header-buttons">
       </div>
+      {messages.length === 0 && (
+        <div className="empty-chat-message">
+          <p className="new-chat-noti">Start a New Chat</p>
+        </div>
+      )}
 
       {showConfirmation && (
         <>
@@ -489,7 +494,7 @@ function App() {
               onClick={createNewChat}
               aria-label="Create new chat"
             >
-              📝
+              ✨
             </button>
           <button
               className="settings-toggle"
@@ -749,7 +754,7 @@ function App() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={messages.length === 0 ? "Start chat now" : "Type your message..."}
               disabled={isLoading || error}
             />
             <button type="submit" disabled={isLoading || !input.trim() || error}>
