@@ -41,6 +41,7 @@ interface ServiceStatus {
 
 function App() {
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     const savedMessages = localStorage.getItem('chatMessages')
     return savedMessages ? JSON.parse(savedMessages).map((msg: any) => ({
@@ -73,7 +74,10 @@ function App() {
     soundEnabled: true,
     autoScroll: true
   })
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversations, setConversations] = useState<Conversation[]>(() => {
+    const savedConversations = localStorage.getItem('conversations')
+    return savedConversations ? JSON.parse(savedConversations) : []
+  })
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
   const [tags, setTags] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -88,6 +92,52 @@ function App() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  useEffect(() => {
+    if (selectedConversation && messages.length > 0) {
+      const updatedConversations = conversations.map(conv =>
+        conv.id === selectedConversation
+          ? { ...conv, messages, updatedAt: Date.now() }
+          : conv
+      )
+      setConversations(updatedConversations)
+      localStorage.setItem('conversations', JSON.stringify(updatedConversations))
+    }
+  }, [messages, selectedConversation])
+
+  const formatDateTime = (timestamp: number) => {
+    const date = new Date(timestamp)
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    })
+  }
+
+  const createNewChat = () => {
+    if (messages.length > 0) {
+      const timestamp = Date.now()
+      const newChat: Conversation = {
+        id: timestamp.toString(),
+        title: formatDateTime(timestamp),
+        messages: [...messages],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        systemPrompt: settings.systemPrompt || '',
+        model: settings.model,
+        favorite: false,
+        tags: []
+      }
+      setConversations(prev => [...prev, newChat])
+      localStorage.setItem('conversations', JSON.stringify([...conversations, newChat]))
+    }
+    
+    setMessages([])
+    setSelectedConversation(null)
+  }
 
   const checkServiceStatus = async () => {
     try {
@@ -181,7 +231,17 @@ function App() {
     e.preventDefault()
     if (!input.trim() || isLoading) return
 
-    const userMessage = { role: 'user', content: input.trim() } as Message
+    if (selectedConversation) {
+      const updatedConversations = conversations.map(conv =>
+        conv.id === selectedConversation
+          ? { ...conv, messages: [...messages], updatedAt: Date.now() }
+          : conv
+      )
+      setConversations(updatedConversations)
+      localStorage.setItem('conversations', JSON.stringify(updatedConversations))
+    }
+
+    const userMessage = { role: 'user', content: input.trim(), id: Date.now().toString(), timestamp: Date.now() } as Message
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
@@ -320,12 +380,29 @@ function App() {
 
   const handleClearChat = () => {
     setShowConfirmation(true);
+    setChatToDelete(null);
+  };
+
+  const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setChatToDelete(chatId);
+    setShowConfirmation(true);
   };
 
   const confirmClear = () => {
-    setMessages([]);
-    localStorage.removeItem('chatMessages');
+    if (chatToDelete) {
+      setConversations(prev => prev.filter(conv => conv.id !== chatToDelete));
+      localStorage.setItem('conversations', JSON.stringify(conversations.filter(conv => conv.id !== chatToDelete)));
+      if (selectedConversation === chatToDelete) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+    } else {
+      setMessages([]);
+      localStorage.removeItem('chatMessages');
+    }
     setShowConfirmation(false);
+    setChatToDelete(null);
   };
 
   const cancelClear = () => {
@@ -341,8 +418,8 @@ function App() {
         <>
           <div className="modal-overlay" onClick={cancelClear} />
           <div className="confirmation-modal">
-            <h3>Clear Chat History</h3>
-            <p>Are you sure you want to clear all chat messages? This action cannot be undone.</p>
+            <h3>{chatToDelete ? 'Delete Chat' : 'Clear Chat History'}</h3>
+            <p>{chatToDelete ? 'Are you sure you want to delete this chat?' : 'Are you sure you want to clear all chat messages?'} This action cannot be undone.</p>
             <div className="confirmation-buttons">
               <button className="cancel-button" onClick={cancelClear}>
                 Cancel
@@ -394,6 +471,13 @@ function App() {
           <div className="header-buttons">
           <button
               className="settings-toggle"
+              onClick={createNewChat}
+              aria-label="Create new chat"
+            >
+              ✨
+            </button>
+          <button
+              className="settings-toggle"
               onClick={handleClearChat}
               aria-label="Clear chat history"
             >
@@ -430,9 +514,34 @@ function App() {
                 <div
                   key={chat.id}
                   className={`chat-item ${selectedConversation === chat.id ? 'active' : ''}`}
-                  onClick={() => setSelectedConversation(chat.id)}
+                  onClick={() => {
+                    if (selectedConversation && messages.length > 0) {
+                      const updatedConversations = conversations.map(conv =>
+                        conv.id === selectedConversation
+                          ? { ...conv, messages, updatedAt: Date.now() }
+                          : conv
+                      )
+                      setConversations(updatedConversations)
+                      localStorage.setItem('conversations', JSON.stringify(updatedConversations))
+                    }
+                    
+                    setSelectedConversation(chat.id)
+                    setMessages(chat.messages.map(msg => ({
+                      role: msg.role,
+                      content: msg.content,
+                      id: msg.id || Date.now().toString(),
+                      timestamp: msg.timestamp || Date.now()
+                    })))
+                  }}
                 >
                   {chat.title}
+                  <button
+                    className="delete-chat-button"
+                    onClick={(e) => handleDeleteChat(chat.id, e)}
+                    aria-label="Delete chat"
+                  >
+                    🗑️
+                  </button>
                 </div>
               ))}
             </div>
