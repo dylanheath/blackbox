@@ -12,7 +12,26 @@ interface Settings {
   model: string
   temperature: number
   maxTokens: number
+  theme: 'light' | 'dark' | 'system'
+  renderMarkdown: boolean
+  codeHighlighting: boolean
+  keyboardShortcuts: boolean
+  fontSize: 'small' | 'medium' | 'large'
+  showTimestamps: boolean
+  soundEnabled: boolean
+  autoScroll: boolean
+}
+
+interface Conversation {
+  id: string
+  title: string
+  messages: Message[]
+  createdAt: number
+  updatedAt: number
   systemPrompt: string
+  model: string
+  favorite: boolean
+  tags: string[]
 }
 
 interface ServiceStatus {
@@ -33,9 +52,20 @@ function App() {
     model: 'deepseek-r1-7b',
     temperature: 0.7,
     maxTokens: 2048,
-    systemPrompt: 'You are a helpful AI assistant.'
+    theme: 'system',
+    renderMarkdown: true,
+    codeHighlighting: true,
+    keyboardShortcuts: true,
+    fontSize: 'medium',
+    showTimestamps: true,
+    soundEnabled: true,
+    autoScroll: true
   })
+  const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const [tags, setTags] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -101,6 +131,39 @@ function App() {
       clearInterval(timer)
     }
   }, [])
+
+  const exportConversation = (format: 'json' | 'markdown' | 'txt') => {
+    if (!selectedConversation) return
+    const conversation = conversations.find(c => c.id === selectedConversation)
+    if (!conversation) return
+
+    let content = ''
+    switch (format) {
+      case 'json':
+        content = JSON.stringify(conversation, null, 2)
+        break
+      case 'markdown':
+        content = `# ${conversation.title}\n\n${conversation.messages.map(m => 
+          `**${m.role}**: ${m.content}\n`
+        ).join('\n')}`
+        break
+      case 'txt':
+        content = `${conversation.title}\n\n${conversation.messages.map(m =>
+          `${m.role}: ${m.content}\n`
+        ).join('\n')}`
+        break
+    }
+
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `conversation-${conversation.id}.${format}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -181,6 +244,45 @@ function App() {
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      if (!settings.keyboardShortcuts) return
+
+      // Global shortcuts
+      if (e.key === '/' && !isLoading) {
+        e.preventDefault()
+        setInput('')
+        document.querySelector('input')?.focus()
+      } else if (e.key === 'Escape') {
+        setIsSettingsOpen(false)
+        setIsSidebarOpen(false)
+      } else if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+        e.preventDefault()
+        setIsSettingsOpen(prev => !prev)
+      }
+
+      // Conversation management
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault()
+        setIsSidebarOpen(prev => !prev)
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
+        e.preventDefault()
+        exportConversation('markdown')
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault()
+        // Create new conversation
+        const newConversation: Conversation = {
+          id: Date.now().toString(),
+          title: 'New Conversation',
+          messages: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          systemPrompt: settings.systemPrompt,
+          model: settings.model,
+          favorite: false,
+          tags: []
+        }
+        setConversations(prev => [...prev, newConversation])
+        setSelectedConversation(newConversation.id)
+      }
       if (e.key === '/' && !isLoading) {
         e.preventDefault()
         setInput('')
@@ -242,63 +344,151 @@ function App() {
       ) : (
         <>
           <div className="logo">blackbox</div>
-          <button
-            className="settings-toggle"
-            onClick={() => setIsSettingsOpen(prev => !prev)}
-            aria-label="Toggle settings"
-          >
-            ⚙️
-          </button>
+          <div className="header-buttons">
+            <a
+              href="https://github.com/dylanheath/blackbox"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="github-link"
+              aria-label="View source on GitHub"
+            >
+              <span role="img" aria-label="GitHub">📦</span>
+            </a>
+            <button
+              className="settings-toggle"
+              onClick={() => setIsSettingsOpen(prev => !prev)}
+              aria-label="Toggle settings"
+            >
+              ⚙️
+            </button>
+          </div>
           <div className={`settings-panel ${isSettingsOpen ? 'open' : ''}`}>
             <h2>Settings</h2>
+            <div className="coming-soon-message">
+              <span>✨ These features are coming soon!</span>
+            </div>
             <div className="settings-group">
-              <div className="coming-soon-message">
-                <span>🚀 These settings are being configured. More options coming soon!</span>
+              <div className="settings-section">
+                <h3>Model Configuration</h3>
+                <label htmlFor="model">Model</label>
+                <select
+                  id="model"
+                  value={settings.model}
+                  onChange={(e) => handleSettingsChange('model', e.target.value)}
+                >
+                  <option value="deepseek-r1-1.5b">DeepSeek R1 (1.5B)</option>
+                  <option value="deepseek-r1-7b">DeepSeek R1 (7B)</option>
+                  <option value="deepseek-r1-14b">DeepSeek R1 (14B)</option>
+                  <option value="deepseek-r1-32b">DeepSeek R1 (32B)</option>
+                  <option value="deepseek-r1-67b">DeepSeek R1 (67B)</option>
+                </select>
+
+                <label htmlFor="temperature">Temperature</label>
+                <input
+                  type="range"
+                  id="temperature"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value={settings.temperature}
+                  onChange={(e) => handleSettingsChange('temperature', parseFloat(e.target.value))}
+                />
+                <span className="setting-value">{settings.temperature}</span>
+
+                <label htmlFor="maxTokens">Max Tokens</label>
+                <input
+                  type="range"
+                  id="maxTokens"
+                  min="1"
+                  max="4096"
+                  step="1"
+                  value={settings.maxTokens}
+                  onChange={(e) => handleSettingsChange('maxTokens', parseInt(e.target.value))}
+                />
+                <span className="setting-value">{settings.maxTokens}</span>
               </div>
-              <label htmlFor="model">Model</label>
-              <select
-                id="model"
-                value={settings.model}
-                onChange={(e) => handleSettingsChange('model', e.target.value)}
-              >
-                <option value="deepseek-r1-1.5b">DeepSeek R1 (1.5B)</option>
-                <option value="deepseek-r1-7b">DeepSeek R1 (7B)</option>
-                <option value="deepseek-r1-8b">DeepSeek R1 (8B)</option>
-                <option value="deepseek-r1-14b">DeepSeek R1 (14B)</option>
-                <option value="deepseek-r1-32b">DeepSeek R1 (32B)</option>
-                <option value="deepseek-r1-67b">DeepSeek R1 (67B)</option>
-                <option value="deepseek-r1-70b">DeepSeek R1 (70B)</option>
-              </select>
 
-              <label htmlFor="temperature">Temperature</label>
-              <input
-                type="number"
-                id="temperature"
-                min="0"
-                max="2"
-                step="0.1"
-                value={settings.temperature}
-                onChange={(e) => handleSettingsChange('temperature', parseFloat(e.target.value))}
-              />
 
-              <label htmlFor="maxTokens">Max Tokens</label>
-              <input
-                type="number"
-                id="maxTokens"
-                min="1"
-                max="4096"
-                step="1"
-                value={settings.maxTokens}
-                onChange={(e) => handleSettingsChange('maxTokens', parseInt(e.target.value))}
-              />
 
-              <label htmlFor="systemPrompt">System Prompt</label>
-              <input
-                type="text"
-                id="systemPrompt"
-                value={settings.systemPrompt}
-                onChange={(e) => handleSettingsChange('systemPrompt', e.target.value)}
-              />
+              <div className="settings-section">
+                <h3>Interface Settings</h3>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={settings.renderMarkdown}
+                    onChange={(e) => handleSettingsChange('renderMarkdown', e.target.checked)}
+                  />
+                  Enable Markdown Rendering
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={settings.codeHighlighting}
+                    onChange={(e) => handleSettingsChange('codeHighlighting', e.target.checked)}
+                  />
+                  Enable Code Syntax Highlighting
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={settings.keyboardShortcuts}
+                    onChange={(e) => handleSettingsChange('keyboardShortcuts', e.target.checked)}
+                  />
+                  Enable Keyboard Shortcuts
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={settings.showTimestamps}
+                    onChange={(e) => handleSettingsChange('showTimestamps', e.target.checked)}
+                  />
+                  Show Message Timestamps
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={settings.soundEnabled}
+                    onChange={(e) => handleSettingsChange('soundEnabled', e.target.checked)}
+                  />
+                  Enable Sound Notifications
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={settings.autoScroll}
+                    onChange={(e) => handleSettingsChange('autoScroll', e.target.checked)}
+                  />
+                  Auto-scroll to New Messages
+                </label>
+
+                <label htmlFor="fontSize">Font Size</label>
+                <select
+                  id="fontSize"
+                  value={settings.fontSize}
+                  onChange={(e) => handleSettingsChange('fontSize', e.target.value)}
+                >
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                </select>
+
+                <label htmlFor="theme">Theme</label>
+                <select
+                  id="theme"
+                  value={settings.theme}
+                  onChange={(e) => handleSettingsChange('theme', e.target.value)}
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="system">System</option>
+                </select>
+              </div>
             </div>
           </div>
           <div className="status-indicators">
