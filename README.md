@@ -1,4 +1,3 @@
-<div style="background-color: #1a1f2c; color: rgba(255, 255, 255, 0.87); padding: 2rem; border-radius: 12px;">
 
 # Blackbox
 
@@ -109,34 +108,3 @@ npm run dev
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-</div>
-
-<style>
-  /* Dark theme styles */
-  body {
-    background-color: #1a1f2c;
-    color: rgba(255, 255, 255, 0.87);
-  }
-  
-  a {
-    color: #4299e1;
-  }
-  
-  a:hover {
-    color: #3182ce;
-  }
-  
-  code {
-    background-color: rgba(45, 55, 72, 0.8);
-    padding: 0.2em 0.4em;
-    border-radius: 4px;
-  }
-  
-  pre {
-    background-color: rgba(45, 55, 72, 0.8);
-    padding: 1em;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-</style>
