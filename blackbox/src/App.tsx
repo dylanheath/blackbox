@@ -545,13 +545,6 @@ function App() {
           <div className="header-buttons">
           <button
               className="settings-toggle"
-              onClick={() => setShowWelcomeModal(true)}
-              aria-label="Show information"
-            >
-              ℹ️
-            </button>
-          <button
-              className="settings-toggle"
               onClick={createNewChat}
               aria-label="Create new chat"
             >
@@ -580,6 +573,13 @@ function App() {
             >
               <span role="img" aria-label="GitHub">📦</span>
             </a>
+            <button
+              className="settings-toggle"
+              onClick={() => setShowWelcomeModal(true)}
+              aria-label="Show information"
+            >
+              ℹ️
+            </button>
             <button
               className="settings-toggle"
               onClick={() => setIsSettingsOpen(prev => !prev)}
