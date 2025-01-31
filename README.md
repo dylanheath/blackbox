@@ -1,7 +1,7 @@
 
 <div align="center">
 
-Blackbox
+# Blackbox
 
 A powerful, privacy-focused AI interface for running large language models locally through Ollama.
 
