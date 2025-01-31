@@ -41,6 +41,7 @@ interface ServiceStatus {
 
 function App() {
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     const savedMessages = localStorage.getItem('chatMessages')
@@ -88,6 +89,20 @@ function App() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  const handleSpeak = (text: string, messageId: string) => {
+    if (isSpeaking === messageId) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(null);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onend = () => setIsSpeaking(null);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(messageId);
+  };
 
   useEffect(() => {
     scrollToBottom()
@@ -474,7 +489,7 @@ function App() {
               onClick={createNewChat}
               aria-label="Create new chat"
             >
-              ✨
+              📝
             </button>
           <button
               className="settings-toggle"
@@ -686,8 +701,8 @@ function App() {
             </div>
           </div>
           <div className="messages">
-            {messages.map((message, index) => (
-              <div key={index} className={`message ${message.role}`}>
+            {messages.map((message) => (
+              <div key={message.id} className={`message ${message.role}`}>
                 <div className="message-content">
                   {message.content.split('```').map((block, index) => {
                     if (index % 2 === 0) {

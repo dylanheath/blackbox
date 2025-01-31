@@ -406,6 +406,26 @@
   border-top-right-radius: 4px;
 }
 
+.speak-button {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  margin-left: 8px;
+  font-size: 1.1rem;
+}
+
+.speak-button:hover {
+  opacity: 1;
+}
+
+.message.assistant .message-content {
+  display: flex;
+  align-items: center;
+}
+
 .message.assistant .message-content {
   background-color: #2d3748;
   border-top-left-radius: 4px;
