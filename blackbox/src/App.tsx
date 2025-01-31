@@ -40,7 +40,19 @@ interface ServiceStatus {
 }
 
 function App() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const savedMessages = localStorage.getItem('chatMessages')
+    return savedMessages ? JSON.parse(savedMessages).map((msg: any) => ({
+      ...msg,
+      id: msg.id || Date.now().toString(),
+      timestamp: msg.timestamp || Date.now()
+    })) : []
+  })
+
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(messages))
+  }, [messages])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +77,7 @@ function App() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
   const [tags, setTags] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -306,8 +318,43 @@ function App() {
     }))
   }
 
+  const handleClearChat = () => {
+    setShowConfirmation(true);
+  };
+
+  const confirmClear = () => {
+    setMessages([]);
+    localStorage.removeItem('chatMessages');
+    setShowConfirmation(false);
+  };
+
+  const cancelClear = () => {
+    setShowConfirmation(false);
+  };
+
   return (
     <div className="chat-container">
+      <div className="header-buttons">
+      </div>
+
+      {showConfirmation && (
+        <>
+          <div className="modal-overlay" onClick={cancelClear} />
+          <div className="confirmation-modal">
+            <h3>Clear Chat History</h3>
+            <p>Are you sure you want to clear all chat messages? This action cannot be undone.</p>
+            <div className="confirmation-buttons">
+              <button className="cancel-button" onClick={cancelClear}>
+                Cancel
+              </button>
+              <button className="confirm-button" onClick={confirmClear}>
+                Clear
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {error && <div className="error-toast">{error}</div>}
       {isInitializing ? (
         <div className="loading-screen">
@@ -345,6 +392,20 @@ function App() {
         <>
           <div className="logo">blackbox</div>
           <div className="header-buttons">
+          <button
+              className="settings-toggle"
+              onClick={handleClearChat}
+              aria-label="Clear chat history"
+            >
+              🗑️
+            </button>
+            <button
+              className="settings-toggle"
+              onClick={() => setIsSidebarOpen(prev => !prev)}
+              aria-label="View chat history"
+            >
+              💬
+            </button>
             <a
               href="https://github.com/dylanheath/blackbox"
               target="_blank"
@@ -361,6 +422,20 @@ function App() {
             >
               ⚙️
             </button>
+          </div>
+          <div className={`chat-history-panel ${isSidebarOpen ? 'open' : ''}`}>
+            <h2>Chat History</h2>
+            <div className="chat-list">
+              {conversations.map(chat => (
+                <div
+                  key={chat.id}
+                  className={`chat-item ${selectedConversation === chat.id ? 'active' : ''}`}
+                  onClick={() => setSelectedConversation(chat.id)}
+                >
+                  {chat.title}
+                </div>
+              ))}
+            </div>
           </div>
           <div className={`settings-panel ${isSettingsOpen ? 'open' : ''}`}>
             <h2>Settings</h2>

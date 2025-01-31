@@ -128,19 +128,7 @@
   transition: transform 0.3s ease-in-out;
   z-index: 100;
   overflow-y: auto;
-  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1)
-  top: 0;
-  right: 0;
-  width: 320px;
-  height: 100vh;
-  background: rgba(26, 32, 44, 0.95);
-  backdrop-filter: blur(12px);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 2rem;
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out;
-  z-index: 1000;
-  overflow-y: auto;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
 }
 
 .settings-panel.open {
@@ -404,8 +392,7 @@
 }
 
 .message-content {
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
+  padding: 0.4rem 0.4rem;
   color: #ffffff;
   font-size: 0.9375rem;
   line-height: 1.5;
@@ -481,10 +468,10 @@
 }
 
 .message-content {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.4rem;
   border-radius: 14px;
   font-size: 0.95rem;
-  line-height: 1.5;
+  line-height: 1;
   position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
@@ -897,6 +884,158 @@ code {
   font-size: 0.9rem;
 }
 
+.clear-chat {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  z-index: 1001;
+}
+
+.clear-chat:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.confirmation-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(45, 55, 72, 0.95);
+  padding: 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  width: 90%;
+  max-width: 400px;
+}
+
+.confirmation-modal h3 {
+  color: white;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.confirmation-modal p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.confirm-button,
+.cancel-button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirm-button {
+  background: #fc8181;
+  color: white;
+  border: none;
+}
+
+.confirm-button:hover {
+  background: #e53e3e;
+  transform: translateY(-1px);
+}
+
+.cancel-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cancel-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1999;
+}
+
+.chat-history-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 360px;
+  background: rgba(23, 25, 35, 0.95);
+  backdrop-filter: blur(16px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 100;
+  overflow-y: auto;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.chat-history-panel.open {
+  transform: translateX(0);
+}
+
+.chat-history-panel h2 {
+  color: white;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-item {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.chat-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.chat-item.active {
+  background: rgba(66, 153, 225, 0.2);
+  border-color: rgba(66, 153, 225, 0.5);
+}
+
 .coming-soon-message {
   background: rgba(66, 153, 225, 0.1);
   border-radius: 8px;
@@ -911,4 +1050,152 @@ code {
   color: #4299e1;
   font-weight: 500;
   font-size: 0.9rem;
+}
+
+.clear-chat {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  z-index: 1001;
+}
+
+.clear-chat:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.confirmation-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(45, 55, 72, 0.95);
+  padding: 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  width: 90%;
+  max-width: 400px;
+}
+
+.confirmation-modal h3 {
+  color: white;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.confirmation-modal p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.confirm-button,
+.cancel-button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirm-button {
+  background: #fc8181;
+  color: white;
+  border: none;
+}
+
+.confirm-button:hover {
+  background: #e53e3e;
+  transform: translateY(-1px);
+}
+
+.cancel-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cancel-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1999;
+}
+
+.chat-history-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 360px;
+  background: rgba(23, 25, 35, 0.95);
+  backdrop-filter: blur(16px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.chat-history-panel.open {
+  transform: translateX(0);
+}
+
+.chat-history-panel h2 {
+  color: #fff;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chat-item {
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chat-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.chat-item.active {
+  background: rgba(66, 153, 225, 0.2);
+  border: 1px solid rgba(66, 153, 225, 0.3);
 }
