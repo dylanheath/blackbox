@@ -1,7 +1,7 @@
 
 <div align="center">
 
-# 🤖 Blackbox
+Blackbox
 
 A powerful, privacy-focused AI interface for running large language models locally through Ollama.
 
@@ -9,38 +9,38 @@ A powerful, privacy-focused AI interface for running large language models local
 
 </div>
 
-## 🌟 Why Blackbox?
+## Why Blackbox?
 
 Blackbox is your gateway to running sophisticated AI models locally with complete privacy and control. Built for developers and AI enthusiasts who want the power of large language models without compromising on privacy or dealing with API costs.
 
 ### Why Local AI?
 
-🔒 **Complete Privacy**
+**Complete Privacy**
 - Your data never leaves your machine
 - Full control over model execution
 - No internet dependency after model download
 
-💰 **Cost Effective**
+**Cost Effective**
 - No usage costs or API fees
 - Run unlimited queries
 - Scale without worrying about billing
 
-⚡ **High Performance**
+**High Performance**
 - Low latency responses
 - Customizable model configurations
 - Optimized for your hardware
 
-## ✨ Features
+## Features
 
-- 🚀 Real-time streaming chat responses
-- 🎨 Clean, modern user interface
-- 🔄 Service status monitoring
-- 🔌 Automatic reconnection handling
-- 🌐 CORS-enabled proxy server
-- 📡 Streaming response processing
-- 🤝 Support for any Ollama-compatible language model
+- Real-time streaming chat responses
+- Clean, modern user interface
+- Service status monitoring
+- Automatic reconnection handling
+- CORS-enabled proxy server
+- Streaming response processing
+- Support for any Ollama-compatible language model
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -88,18 +88,18 @@ npm install
 - Default development port: 5173 (Vite default)
 - Proxy server endpoint: http://localhost:8000
 
-## 🤝 Contributing
+## Contributing
 
 We love contributions! Whether it's fixing bugs, adding features, or improving documentation, your help makes Blackbox better for everyone.
 
 ### Ways to Contribute
 
-- 🐛 Report bugs and issues
-- 💡 Suggest new features or improvements
-- 📝 Improve documentation
-- 🔧 Submit pull requests
-- 🎨 Enhance UI/UX
-- ⚡ Optimize performance
+- Report bugs and issues
+- Suggest new features or improvements
+- Improve documentation
+- Submit pull requests
+- Enhance UI/UX
+- Optimize performance
 
 ### Development Process
 
@@ -117,11 +117,11 @@ We love contributions! Whether it's fixing bugs, adding features, or improving d
 - Update documentation as needed
 - Keep pull requests focused and atomic
 
-## 📝 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [React](https://reactjs.org/)
 - Powered by [Ollama](https://ollama.ai)
@@ -130,5 +130,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 <div align="center">
-Made with ❤️ by the Blackbox community
+Made by Dylan Heathcote
 </div>
