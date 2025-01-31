@@ -34,7 +34,7 @@ A local AI interface designed for running and interacting with AI models through
 - Node.js (v14 or higher)
 - npm or yarn
 - [Ollama](https://ollama.ai) installed locally
-- DeepSeek R1 7B model (or any other Ollama-compatible model) pulled via Ollama
+- DeepSeek R1 7B model pulled via Ollama (currently the only available model, with more variants coming soon)
 
 ## Setup
 

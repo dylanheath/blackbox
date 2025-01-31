@@ -4,6 +4,15 @@ import './App.css'
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  id: string
+  timestamp: number
+}
+
+interface Settings {
+  model: string
+  temperature: number
+  maxTokens: number
+  systemPrompt: string
 }
 
 interface ServiceStatus {
@@ -19,6 +28,14 @@ function App() {
   const [proxyStatus, setProxyStatus] = useState<ServiceStatus>({ isConnected: false, retryCount: 0 })
   const [modelStatus, setModelStatus] = useState<ServiceStatus>({ isConnected: false, retryCount: 0 })
   const [isInitializing, setIsInitializing] = useState(true)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [settings, setSettings] = useState<Settings>({
+    model: 'deepseek-r1-7b',
+    temperature: 0.7,
+    maxTokens: 2048,
+    systemPrompt: 'You are a helpful AI assistant.'
+  })
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -162,6 +179,31 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === '/' && !isLoading) {
+        e.preventDefault()
+        setInput('')
+        document.querySelector('input')?.focus()
+      } else if (e.key === 'Escape') {
+        setIsSettingsOpen(false)
+      } else if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+        e.preventDefault()
+        setIsSettingsOpen(prev => !prev)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [isLoading])
+
+  const handleSettingsChange = (key: keyof Settings, value: string | number) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }))
+  }
+
   return (
     <div className="chat-container">
       {error && <div className="error-toast">{error}</div>}
@@ -200,6 +242,65 @@ function App() {
       ) : (
         <>
           <div className="logo">blackbox</div>
+          <button
+            className="settings-toggle"
+            onClick={() => setIsSettingsOpen(prev => !prev)}
+            aria-label="Toggle settings"
+          >
+            ⚙️
+          </button>
+          <div className={`settings-panel ${isSettingsOpen ? 'open' : ''}`}>
+            <h2>Settings</h2>
+            <div className="settings-group">
+              <div className="coming-soon-message">
+                <span>🚀 These settings are being configured. More options coming soon!</span>
+              </div>
+              <label htmlFor="model">Model</label>
+              <select
+                id="model"
+                value={settings.model}
+                onChange={(e) => handleSettingsChange('model', e.target.value)}
+              >
+                <option value="deepseek-r1-1.5b">DeepSeek R1 (1.5B)</option>
+                <option value="deepseek-r1-7b">DeepSeek R1 (7B)</option>
+                <option value="deepseek-r1-8b">DeepSeek R1 (8B)</option>
+                <option value="deepseek-r1-14b">DeepSeek R1 (14B)</option>
+                <option value="deepseek-r1-32b">DeepSeek R1 (32B)</option>
+                <option value="deepseek-r1-67b">DeepSeek R1 (67B)</option>
+                <option value="deepseek-r1-70b">DeepSeek R1 (70B)</option>
+              </select>
+
+              <label htmlFor="temperature">Temperature</label>
+              <input
+                type="number"
+                id="temperature"
+                min="0"
+                max="2"
+                step="0.1"
+                value={settings.temperature}
+                onChange={(e) => handleSettingsChange('temperature', parseFloat(e.target.value))}
+              />
+
+              <label htmlFor="maxTokens">Max Tokens</label>
+              <input
+                type="number"
+                id="maxTokens"
+                min="1"
+                max="4096"
+                step="1"
+                value={settings.maxTokens}
+                onChange={(e) => handleSettingsChange('maxTokens', parseInt(e.target.value))}
+              />
+
+              <label htmlFor="systemPrompt">System Prompt</label>
+              <input
+                type="text"
+                id="systemPrompt"
+                value={settings.systemPrompt}
+                onChange={(e) => handleSettingsChange('systemPrompt', e.target.value)}
+              />
+            </div>
+          </div>
           <div className="status-indicators">
             <div className={`status-indicator ${proxyStatus.isConnected ? 'success' : 'error'}`}>
               <span className="status-dot"></span>
@@ -213,7 +314,32 @@ function App() {
           <div className="messages">
             {messages.map((message, index) => (
               <div key={index} className={`message ${message.role}`}>
-                <div className="message-content">{message.content}</div>
+                <div className="message-content">
+                  {message.content.split('```').map((block, index) => {
+                    if (index % 2 === 0) {
+                      return <div key={index} className="text-block">{block}</div>
+                    } else {
+                      const [lang, ...code] = block.split('\n')
+                      return (
+                        <pre key={index} className="code-block">
+                          <div className="code-header">
+                            <span className="language">{lang || 'plaintext'}</span>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(code.join('\n'))}
+                              className="copy-button"
+                              title="Copy code"
+                            >
+                              📋
+                            </button>
+                          </div>
+                          <code className={`language-${lang || 'plaintext'}`}>
+                            {code.join('\n')}
+                          </code>
+                        </pre>
+                      )
+                    }
+                  })}
+                </div>
               </div>
             ))}
             {isLoading && (

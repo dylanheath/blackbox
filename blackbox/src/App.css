@@ -75,6 +75,96 @@
   line-height: 1.5;
 }
 
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: rgba(26, 32, 44, 0.95);
+  backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.settings-panel.open {
+  transform: translateX(0);
+}
+
+.settings-panel h2 {
+  color: white;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.settings-group {
+  margin-bottom: 2rem;
+}
+
+.settings-group label {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.settings-group select,
+.settings-group input[type="number"],
+.settings-group input[type="text"] {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: white;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.settings-group select:focus,
+.settings-group input:focus {
+  outline: none;
+  border-color: rgba(66, 153, 225, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.settings-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(45, 55, 72, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1001;
+  transition: all 0.2s;
+}
+
+.settings-toggle:hover {
+  background: rgba(66, 153, 225, 0.8);
+}
+
+.keyboard-shortcuts {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+.keyboard-shortcuts kbd {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  margin: 0 0.2rem;
+}
+
 .refresh-button {
   background: #4299e1;
   color: white;
@@ -334,6 +424,57 @@
   position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
+}
+
+.code-block {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.language {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  text-transform: lowercase;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.copy-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+code {
+  display: block;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+.text-block {
+  margin: 0.5rem 0;
 }
 
 .message.user .message-content {
@@ -668,4 +809,20 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translate(-50%, -48%); }
   to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+.coming-soon-message {
+  background: rgba(66, 153, 225, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coming-soon-message span {
+  color: #4299e1;
+  font-weight: 500;
+  font-size: 0.9rem;
 }
