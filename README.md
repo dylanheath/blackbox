@@ -1,27 +1,55 @@
 
-# Blackbox
+<div align="center">
 
-A local AI interface designed for running and interacting with AI models through Ollama on your own machine. Currently supporting the DeepSeek R1 language model (with more Ollama-compatible models coming soon), this application features a React frontend and Node.js proxy server for seamless local AI model execution.
+# 🤖 Blackbox
 
-## Why Local AI?
+A powerful, privacy-focused AI interface for running large language models locally through Ollama.
 
-- Complete privacy and data control
+[Features](#features) • [Why Local AI?](#why-local-ai) • [Getting Started](#getting-started) • [Contributing](#contributing)
+
+</div>
+
+## 🌟 Why Blackbox?
+
+Blackbox is your gateway to running sophisticated AI models locally with complete privacy and control. Built for developers and AI enthusiasts who want the power of large language models without compromising on privacy or dealing with API costs.
+
+### Why Local AI?
+
+🔒 **Complete Privacy**
+- Your data never leaves your machine
+- Full control over model execution
 - No internet dependency after model download
+
+💰 **Cost Effective**
 - No usage costs or API fees
+- Run unlimited queries
+- Scale without worrying about billing
+
+⚡ **High Performance**
+- Low latency responses
 - Customizable model configurations
-- Full control over model execution environment
+- Optimized for your hardware
 
-## Features
+## ✨ Features
 
-- Real-time streaming chat responses
-- Clean, modern user interface
-- Service status monitoring
-- Automatic reconnection handling
-- CORS-enabled proxy server
-- Streaming response processing
-- Support for any Ollama-compatible language model
+- 🚀 Real-time streaming chat responses
+- 🎨 Clean, modern user interface
+- 🔄 Service status monitoring
+- 🔌 Automatic reconnection handling
+- 🌐 CORS-enabled proxy server
+- 📡 Streaming response processing
+- 🤝 Support for any Ollama-compatible language model
 
-## Project Structure
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+- [Ollama](https://ollama.ai) installed locally
+- DeepSeek R1 7B model pulled via Ollama
+
+### Project Structure
 
 ```
 ├── blackbox/          # React frontend application
@@ -29,82 +57,78 @@ A local AI interface designed for running and interacting with AI models through
 └── start.sh           # Startup script
 ```
 
-## Prerequisites
+### Development Setup
 
-- Node.js (v14 or higher)
-- npm or yarn
-- [Ollama](https://ollama.ai) installed locally
-- DeepSeek R1 7B model pulled via Ollama (currently the only available model, with more variants coming soon)
-
-## Setup
-
-1. Clone the repository:
+1. Clone the repository
 ```bash
-git clone [your-repository-url]
-cd [repository-name]
+git clone https://github.com/dylanheath/blackbox.git
+cd blackbox
 ```
 
-2. Install dependencies for both the frontend and proxy server:
+2. Install dependencies
 ```bash
-# Install proxy server dependencies
-cd proxy
-npm install
-
 # Install frontend dependencies
-cd ../blackbox
+cd blackbox
+npm install
+
+# Install proxy server dependencies
+cd ../proxy
 npm install
 ```
 
-3. Make sure Ollama is installed and the DeepSeek R1 model (or your preferred model) is pulled:
+3. Start development servers
 ```bash
-ollama pull deepseek-r1:7b
-```
-
-## Running the Application
-
-1. Start the application using the provided script:
-```bash
+# Start both frontend and proxy server
 ./start.sh
 ```
 
-This script will:
-- Start the Ollama service if not running
-- Pull the DeepSeek R1 model if not available
-- Start the Node.js proxy server
+### Configuration
 
-2. In a separate terminal, start the frontend:
-```bash
-cd blackbox
-npm run dev
-```
-
-3. Access the application at `http://localhost:5173`
-
-## Configuration
-
-### Proxy Server
-- Default port: 8000 (configurable via PORT environment variable)
-- Ollama host: http://localhost:11434 (configurable via OLLAMA_HOST environment variable)
-- Model: deepseek-r1:7b (configurable to any Ollama-compatible model)
-
-### Frontend
+#### Frontend
 - Default development port: 5173 (Vite default)
 - Proxy server endpoint: http://localhost:8000
 
-## Development
+## 🤝 Contributing
 
-### Frontend (blackbox/)
-- Built with React + TypeScript
-- Uses Vite as build tool
-- Features real-time message streaming
-- Includes service status monitoring
+We love contributions! Whether it's fixing bugs, adding features, or improving documentation, your help makes Blackbox better for everyone.
 
-### Proxy Server (proxy/)
-- Node.js server with CORS support
-- Streams responses from Ollama
-- Provides status endpoint for service health checks
-- Handles error cases and reconnection logic
+### Ways to Contribute
 
-## Contributing
+- 🐛 Report bugs and issues
+- 💡 Suggest new features or improvements
+- 📝 Improve documentation
+- 🔧 Submit pull requests
+- 🎨 Enhance UI/UX
+- ⚡ Optimize performance
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Development Process
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Guidelines
+
+- Follow the existing code style
+- Write clear commit messages
+- Add tests for new features
+- Update documentation as needed
+- Keep pull requests focused and atomic
+
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 🙏 Acknowledgments
+
+- Built with [React](https://reactjs.org/)
+- Powered by [Ollama](https://ollama.ai)
+- UI components styled with CSS
+
+---
+
+<div align="center">
+Made with ❤️ by the Blackbox community
+</div>
