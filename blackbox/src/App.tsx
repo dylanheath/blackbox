@@ -41,6 +41,7 @@ interface ServiceStatus {
 
 function App() {
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -53,8 +54,13 @@ function App() {
   })
 
   useEffect(() => {
-    localStorage.setItem('chatMessages', JSON.stringify(messages))
-  }, [messages])
+    const hasVisitedBefore = localStorage.getItem('hasVisitedBefore')
+    if (!hasVisitedBefore) {
+      setShowWelcomeModal(true)
+      localStorage.setItem('hasVisitedBefore', 'true')
+    }
+  }, [])
+  localStorage.setItem('chatMessages', JSON.stringify(messages))
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -434,6 +440,54 @@ function App() {
         </div>
       )}
 
+      {showWelcomeModal && (
+        <>
+          <div className="modal-overlay" onClick={() => setShowWelcomeModal(false)} />
+          <div className="confirmation-modal welcome-modal">
+            <h3>Welcome to Blackbox</h3>
+            <p>A powerful, privacy-focused AI interface for running large language models locally through Ollama.</p>
+            
+            <div className="welcome-section">
+              <h4>Why Local AI?</h4>
+              <ul>
+                <li>Complete Privacy - Your data never leaves your machine</li>
+                <li>Cost Effective - No usage costs or API fees</li>
+                <li>High Performance - Low latency responses</li>
+                <li>Full Control - Customize model configurations</li>
+              </ul>
+            </div>
+
+            <div className="welcome-section">
+              <h4>Key Features</h4>
+              <ul>
+                <li>Real-time streaming chat responses</li>
+                <li>Clean, modern user interface</li>
+                <li>Service status monitoring</li>
+                <li>Automatic reconnection handling</li>
+                <li>Support for any Ollama-compatible model</li>
+              </ul>
+            </div>
+
+            <div className="welcome-section">
+              <h4>Getting Started</h4>
+              <ul>
+                <li>Click the sparkle icon to start a new chat</li>
+                <li>Use '/' to focus the input field</li>
+                <li>Access settings with Cmd/Ctrl + ,</li>
+                <li>Clear chat history with the trash icon</li>
+              </ul>
+            </div>
+
+            <p className="welcome-footer">Made with love by Dylan Heathcote</p>
+            
+            <div className="confirmation-buttons">
+              <button className="confirm-button" onClick={() => setShowWelcomeModal(false)}>
+                Get Started
+              </button>
+            </div>
+          </div>
+        </>
+      )}
       {showConfirmation && (
         <>
           <div className="modal-overlay" onClick={cancelClear} />
@@ -489,6 +543,13 @@ function App() {
         <>
           <div className="logo">blackbox</div>
           <div className="header-buttons">
+          <button
+              className="settings-toggle"
+              onClick={() => setShowWelcomeModal(true)}
+              aria-label="Show information"
+            >
+              ℹ️
+            </button>
           <button
               className="settings-toggle"
               onClick={createNewChat}
