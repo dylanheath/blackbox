@@ -754,7 +754,7 @@ function App() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={messages.length === 0 ? "Start chat now" : "Type your message..."}
+              placeholder={messages.length === 0 ? "Start a New Chat..." : "Type your message..."}
               disabled={isLoading || error}
             />
             <button type="submit" disabled={isLoading || !input.trim() || error}>
