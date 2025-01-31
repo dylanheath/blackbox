@@ -1,0 +1,13 @@
+{
+  "name": "AI",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "bash start.sh"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
+
