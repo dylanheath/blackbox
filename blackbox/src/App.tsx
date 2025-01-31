@@ -20,6 +20,7 @@ interface Settings {
   showTimestamps: boolean
   soundEnabled: boolean
   autoScroll: boolean
+  advancedMode: boolean
 }
 
 interface Conversation {
@@ -42,6 +43,7 @@ interface ServiceStatus {
 function App() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showAdvancedModal, setShowAdvancedModal] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -79,7 +81,8 @@ function App() {
     fontSize: 'medium',
     showTimestamps: true,
     soundEnabled: true,
-    autoScroll: true
+    autoScroll: true,
+    advancedMode: false
   })
   const [conversations, setConversations] = useState<Conversation[]>(() => {
     const savedConversations = localStorage.getItem('conversations')
@@ -392,7 +395,11 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [isLoading])
 
-  const handleSettingsChange = (key: keyof Settings, value: string | number) => {
+  const handleSettingsChange = (key: keyof Settings, value: string | number | boolean) => {
+    if (key === 'advancedMode' && !settings.advancedMode) {
+      setShowAdvancedModal(true);
+      return;
+    }
     setSettings(prev => ({
       ...prev,
       [key]: value
@@ -483,6 +490,34 @@ function App() {
             <div className="confirmation-buttons">
               <button className="confirm-button" onClick={() => setShowWelcomeModal(false)}>
                 Get Started
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      {showAdvancedModal && (
+        <>
+          <div className="modal-overlay" onClick={() => setShowAdvancedModal(false)} />
+          <div className="confirmation-modal">
+            <h3>Enable Advanced Features?</h3>
+            <p>Advanced mode provides deeper insights into how the AI thinks and responds. When enabled, you'll see:</p>
+            <ul>
+              <li>Real-time thought process and reasoning</li>
+              <li>Step-by-step decision making</li>
+              <li>Planning and analysis stages</li>
+              <li>Direct model outputs and insights</li>
+            </ul>
+            <p className="modal-description">Perfect for developers, researchers, and anyone interested in understanding how the AI formulates its responses. You'll gain transparency into the model's behavior and decision-making process.</p>
+            <div className="confirmation-buttons">
+              <button className="cancel-button" onClick={() => setShowAdvancedModal(false)}>Cancel</button>
+              <button
+                className="confirm-button"
+                onClick={() => {
+                  setSettings(prev => ({ ...prev, advancedMode: true }));
+                  setShowAdvancedModal(false);
+                }}
+              >
+                Enable
               </button>
             </div>
           </div>
@@ -631,6 +666,17 @@ function App() {
             <h2>Settings</h2>
             <div className="coming-soon-message">
               <span>✨ These features are coming soon!</span>
+            </div>
+            <div className="settings-group">
+              <label>Advanced Mode</label>
+              <div className="settings-section">
+                <input
+                  type="checkbox"
+                  checked={settings.advancedMode}
+                  onChange={(e) => handleSettingsChange('advancedMode', e.target.checked)}
+                />
+                <span>Enable advanced features</span>
+              </div>
             </div>
             <div className="settings-group">
               <div className="settings-section">
