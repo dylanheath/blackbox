@@ -508,6 +508,7 @@ function App() {
               <li>Direct model outputs and insights</li>
             </ul>
             <p className="modal-description">Perfect for developers, researchers, and anyone interested in understanding how the AI formulates its responses. You'll gain transparency into the model's behavior and decision-making process.</p>
+            <p className="model-description">(only available for models that support it)</p>
             <div className="confirmation-buttons">
               <button className="cancel-button" onClick={() => setShowAdvancedModal(false)}>Cancel</button>
               <button
