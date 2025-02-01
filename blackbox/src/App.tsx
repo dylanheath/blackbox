@@ -811,6 +811,7 @@ function App() {
               <span className="status-dot"></span>
               <span className="status-label">Model</span>
             </div>
+            <p className="current-model-name">{settings.model}</p>
           </div>
           <div className="messages">
             {messages.map((message) => (

@@ -530,6 +530,14 @@
   transition: all 0.2s;
 }
 
+.current-model {
+}
+
+.current-model-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
 .copy-button:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
@@ -704,7 +712,6 @@ code {
 .status-indicators {
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
 }
 
 .message {
@@ -1690,7 +1697,20 @@ code {
 .status-indicators {
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin: 0.5rem;
+}
+
+.current-model-name {
+  color: #FF6B00;
+
+  display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 0.5rem;
+    transition: all 0.2s ease;
 }
 
 .message {
