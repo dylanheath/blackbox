@@ -811,7 +811,7 @@ function App() {
               <span className="status-dot"></span>
               <span className="status-label">Model</span>
             </div>
-            <p className="current-model-name">{settings.model}</p>
+            <button className="current-model-name" onClick={() => setIsSettingsOpen(prev => !prev)}>{settings.model}</button>
           </div>
           <div className="messages">
             {messages.map((message) => (
