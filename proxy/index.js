@@ -18,14 +18,24 @@ async function handleOllamaStream(req, res) {
             return;
         }
 
+        // Parse model parameters from request
+        const { model = MODEL, temperature = 0.7, maxTokens, systemPrompt } = JSON.parse(req.body);
+
         // Configure and send request to Ollama
         const ollamaResponse = await fetch(`${OLLAMA_HOST}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: MODEL,
-                messages: [{ role: 'user', content: prompt }],
-                stream: true
+                model: model,
+                messages: [
+                    ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+                    { role: 'user', content: prompt }
+                ],
+                stream: true,
+                options: {
+                    temperature: temperature,
+                    ...(maxTokens && { num_predict: maxTokens })
+                }
             })
         });
 
@@ -90,6 +100,7 @@ const server = http.createServer(async (req, res) => {
             req.body = body;
             handleOllamaStream(req, res);
         });
+        console.log(body)
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Not found' }));

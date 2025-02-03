@@ -8,20 +8,11 @@ interface Message {
   timestamp: number
 }
 
-interface Settings {
-  model: string
-  temperature: number
-  maxTokens: number
-  theme: 'light' | 'dark' | 'system'
-  renderMarkdown: boolean
-  codeHighlighting: boolean
-  keyboardShortcuts: boolean
-  fontSize: 'small' | 'medium' | 'large'
-  showTimestamps: boolean
-  soundEnabled: boolean
-  autoScroll: boolean
-  advancedMode: boolean
-}
+import { Settings, Conversation, Message, ServiceStatus, Folder, Template, BackupData } from './types';
+import ConversationManager from './components/ConversationManager';
+import Dashboard from './components/Dashboard';
+import TemplateLibrary from './components/TemplateLibrary';
+import BatchProcessor from './components/BatchProcessor';
 
 interface Conversation {
   id: string
@@ -48,11 +39,32 @@ function App() {
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     const savedMessages = localStorage.getItem('chatMessages')
-    return savedMessages ? JSON.parse(savedMessages).map((msg: any) => ({
+    const savedSettings = localStorage.getItem('settings')
+    const settings = savedSettings ? JSON.parse(savedSettings) : {}
+    const systemPrompt = settings.systemPrompt || ''
+
+    const parsedMessages = savedMessages ? JSON.parse(savedMessages).map((msg: any) => ({
       ...msg,
       id: msg.id || Date.now().toString(),
       timestamp: msg.timestamp || Date.now()
     })) : []
+
+    if (systemPrompt) {
+      const existingSystemMessage = parsedMessages.find(msg => msg.role === 'system')
+      if (!existingSystemMessage) {
+        // Create system message but don't display it in the chat
+        const systemMessage: Message = {
+          role: 'system',
+          content: systemPrompt,
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          hidden: true // Add hidden flag to prevent display
+        }
+        return [systemMessage, ...parsedMessages.filter(msg => !msg.hidden)]
+      }
+    }
+
+    return parsedMessages
   })
 
   useEffect(() => {
@@ -70,19 +82,23 @@ function App() {
   const [modelStatus, setModelStatus] = useState<ServiceStatus>({ isConnected: false, retryCount: 0 })
   const [isInitializing, setIsInitializing] = useState(true)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [settings, setSettings] = useState<Settings>({
-    model: 'deepseek-r1-7b',
-    temperature: 0.7,
-    maxTokens: 2048,
-    theme: 'system',
-    renderMarkdown: true,
-    codeHighlighting: true,
-    keyboardShortcuts: true,
-    fontSize: 'medium',
-    showTimestamps: true,
-    soundEnabled: true,
-    autoScroll: true,
-    advancedMode: false
+  const [settings, setSettings] = useState<Settings>(() => {
+    const savedSettings = localStorage.getItem('settings')
+    return savedSettings ? JSON.parse(savedSettings) : {
+      model: 'deepseek-r1-7b',
+      temperature: 0.7,
+      maxTokens: 2048,
+      theme: 'system',
+      renderMarkdown: true,
+      codeHighlighting: true,
+      keyboardShortcuts: true,
+      fontSize: 'medium',
+      showTimestamps: true,
+      soundEnabled: true,
+      autoScroll: true,
+      advancedMode: false,
+      systemPrompt: localStorage.getItem('systemPrompt') || ''
+    }
   })
   const [conversations, setConversations] = useState<Conversation[]>(() => {
     const savedConversations = localStorage.getItem('conversations')
@@ -92,6 +108,7 @@ function App() {
   const [tags, setTags] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isTemplateLibraryOpen, setIsTemplateLibraryOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -144,10 +161,18 @@ function App() {
   const createNewChat = () => {
     if (messages.length > 0) {
       const timestamp = Date.now()
+      const systemMessage = settings.systemPrompt ? {
+        role: 'system',
+        content: settings.systemPrompt,
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        hidden: true
+      } : null
+  
       const newChat: Conversation = {
         id: timestamp.toString(),
         title: formatDateTime(timestamp),
-        messages: [...messages],
+        messages: systemMessage ? [systemMessage, ...messages] : messages,
         createdAt: timestamp,
         updatedAt: timestamp,
         systemPrompt: settings.systemPrompt || '',
@@ -159,7 +184,79 @@ function App() {
       localStorage.setItem('conversations', JSON.stringify([...conversations, newChat]))
     }
     
-    setMessages([])
+    const systemMessage = settings.systemPrompt ? {
+      role: 'system',
+      content: settings.systemPrompt,
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      hidden: true
+    } : null
+
+    if (systemMessage && settings.systemPrompt) {
+      setMessages([systemMessage])
+      fetch('http://localhost:8000/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: '',
+          systemPrompt: settings.systemPrompt
+        })
+      })
+      .then(response => response.body?.getReader())
+      .then(async reader => {
+        if (!reader) return
+        
+        let assistantMessage = ''
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          
+          for (let i = 0; i < lines.length - 1; i++) {
+            const line = lines[i].trim()
+            if (!line) continue
+
+            try {
+              const jsonChunk = JSON.parse(line)
+              if (jsonChunk.message?.content) {
+                const filteredContent = jsonChunk.message.content
+                  .replace(/<think>[\s\S]*?<\/think>\s*/g, '')
+                  .replace(/^\s*<think>.*?<\/think>\s*/gm, '')
+                  .trim()
+                
+                if (filteredContent !== '') {
+                  assistantMessage += filteredContent + ' '
+                  const initialResponse = {
+                    role: 'assistant',
+                    content: assistantMessage.trim(),
+                    id: (Date.now() + 1).toString(),
+                    timestamp: Date.now()
+                  }
+                  setMessages([systemMessage, initialResponse])
+                }
+              }
+            } catch (e) {
+              console.debug('Invalid JSON chunk:', line)
+            }
+          }
+          
+          buffer = lines[lines.length - 1]
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error)
+        setError('An error occurred while processing the system prompt.')
+        setIsInitializing(true)
+        checkServiceStatus()
+      })
+    } else {
+      setMessages([])
+    }
     setSelectedConversation(null)
   }
 
@@ -265,6 +362,78 @@ function App() {
       localStorage.setItem('conversations', JSON.stringify(updatedConversations))
     }
 
+    // Initialize chat with system prompt if it exists
+    if (messages.length === 0 && settings.systemPrompt) {
+      try {
+        const response = await fetch('http://localhost:8000/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: '',
+            systemPrompt: settings.systemPrompt
+          })
+        })
+
+        if (!response.ok) throw new Error('Network response was not ok')
+
+        const reader = response.body?.getReader()
+        if (!reader) throw new Error('Failed to get response reader')
+
+        let assistantMessage = ''
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          
+          for (let i = 0; i < lines.length - 1; i++) {
+            const line = lines[i].trim()
+            if (!line) continue
+
+            try {
+              const jsonChunk = JSON.parse(line)
+              if (jsonChunk.message?.content) {
+                const filteredContent = jsonChunk.message.content
+                  .replace(/<think>[\s\S]*?<\/think>\s*/g, '')
+                  .replace(/^\s*<think>.*?<\/think>\s*/gm, '')
+                  .trim()
+                
+                if (filteredContent !== '') {
+                  assistantMessage += filteredContent + ' '
+                  const systemMessage = {
+                    role: 'system',
+                    content: settings.systemPrompt,
+                    id: Date.now().toString(),
+                    timestamp: Date.now(),
+                    hidden: true
+                  }
+                  setMessages(prev => {
+                    const lastMessage = prev[prev.length - 1]
+                    return lastMessage?.role === 'assistant'
+                      ? [...prev.slice(0, -1), { role: 'assistant', content: assistantMessage.trim(), id: (Date.now() + 1).toString(), timestamp: Date.now() }]
+                      : [systemMessage, { role: 'assistant', content: assistantMessage.trim(), id: (Date.now() + 1).toString(), timestamp: Date.now() }]
+                  })
+                }
+              }
+            } catch (e) {
+              console.debug('Invalid JSON chunk:', line)
+            }
+          }
+          
+          buffer = lines[lines.length - 1]
+        }
+      } catch (error) {
+        console.error('Error:', error)
+        setError('An error occurred while processing the system prompt.')
+        setIsInitializing(true)
+        checkServiceStatus()
+      }
+    }
+
     const userMessage = { role: 'user', content: input.trim(), id: Date.now().toString(), timestamp: Date.now() } as Message
     setMessages(prev => [...prev, userMessage])
     setInput('')
@@ -275,7 +444,10 @@ function App() {
       const response = await fetch('http://localhost:8000/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userMessage.content })
+        body: JSON.stringify({
+          prompt: userMessage.content,
+          systemPrompt: settings.systemPrompt
+        })
       })
 
       if (!response.ok) throw new Error('Network response was not ok')
@@ -312,8 +484,8 @@ function App() {
                   setMessages(prev => {
                     const lastMessage = prev[prev.length - 1]
                     return lastMessage?.role === 'assistant'
-                      ? [...prev.slice(0, -1), { role: 'assistant', content: assistantMessage.trim() }]
-                      : [...prev, { role: 'assistant', content: assistantMessage.trim() }]
+                      ? [...prev.slice(0, -1), { role: 'assistant', content: assistantMessage.trim(), id: (Date.now() + 1).toString(), timestamp: Date.now() }]
+                      : [...prev, { role: 'assistant', content: assistantMessage.trim(), id: (Date.now() + 1).toString(), timestamp: Date.now() }]
                   })
                 }
               }
@@ -400,6 +572,9 @@ function App() {
       setShowAdvancedModal(true);
       return;
     }
+    if (key === 'systemPrompt') {
+      localStorage.setItem('systemPrompt', value as string);
+    }
     setSettings(prev => ({
       ...prev,
       [key]: value
@@ -437,10 +612,33 @@ function App() {
     setShowConfirmation(false);
   };
 
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+
+  useEffect(() => {
+    if (settings.systemPrompt) {
+      setShowSystemPrompt(true);
+      const timer = setTimeout(() => setShowSystemPrompt(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [settings.systemPrompt]);
+
   return (
     <div className="chat-container">
-      <div className="header-buttons">
-      </div>
+      {showSystemPrompt && (
+        <div className={`system-prompt-indicator ${showSystemPrompt ? 'visible' : ''}`}>
+          <span>System prompt loaded</span>
+        </div>
+      )}
+      {isTemplateLibraryOpen && (
+        <div className={`template-panel ${isTemplateLibraryOpen ? 'open' : ''}`}>
+          <TemplateLibrary
+            templates={[]}
+            onTemplateSelect={() => {}}
+            onTemplateCreate={() => {}}
+            onTemplateDelete={() => {}}
+          />
+        </div>
+      )}
       {messages.length === 0 && (
         <div className="empty-chat-message">
           <p className="new-chat-noti">Start a New Chat</p>
@@ -600,6 +798,13 @@ function App() {
             >
               💬
             </button>
+            <button
+          className={`settings-toggle ${isTemplateLibraryOpen ? 'active' : ''}`}
+          onClick={() => setIsTemplateLibraryOpen(!isTemplateLibraryOpen)}
+        >
+         📚
+        </button>
+
             <a
               href="https://github.com/dylanheath/blackbox"
               target="_blank"
@@ -718,6 +923,16 @@ function App() {
                   onChange={(e) => handleSettingsChange('maxTokens', parseInt(e.target.value))}
                 />
                 <span className="setting-value">{settings.maxTokens}</span>
+
+                <label htmlFor="systemPrompt">System Prompt</label>
+                <textarea
+                  id="systemPrompt"
+                  value={settings.systemPrompt || ''}
+                  onChange={(e) => handleSettingsChange('systemPrompt', e.target.value)}
+                  placeholder="Enter a system prompt to be used at the start of each chat..."
+                  rows={4}
+                  className="system-prompt-input"
+                />
               </div>
 
 
