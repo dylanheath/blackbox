@@ -84,6 +84,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [settings, setSettings] = useState<Settings>(() => {
     const savedSettings = localStorage.getItem('settings')
+    const savedSystemPrompt = localStorage.getItem('activeSystemPrompt')
     return savedSettings ? JSON.parse(savedSettings) : {
       model: 'deepseek-r1-7b',
       temperature: 0.7,
@@ -97,7 +98,7 @@ function App() {
       soundEnabled: true,
       autoScroll: true,
       advancedMode: false,
-      systemPrompt: localStorage.getItem('systemPrompt') || ''
+      systemPrompt: savedSystemPrompt || localStorage.getItem('systemPrompt') || ''
     }
   })
   const [conversations, setConversations] = useState<Conversation[]>(() => {
@@ -156,6 +157,13 @@ function App() {
       minute: 'numeric',
       hour12: true
     })
+  }
+
+  const saveSettings = () => {
+    localStorage.setItem('settings', JSON.stringify(settings))
+    if (settings.systemPrompt) {
+      localStorage.setItem('systemPrompt', settings.systemPrompt)
+    }
   }
 
   const createNewChat = () => {
@@ -363,7 +371,8 @@ function App() {
     }
 
     // Initialize chat with system prompt if it exists
-    if (messages.length === 0 && settings.systemPrompt) {
+    const hasSystemPrompt = messages.some(msg => msg.role === 'system');
+    if (messages.length === 0 && settings.systemPrompt && !hasSystemPrompt) {
       try {
         const response = await fetch('http://localhost:8000/api/generate', {
           method: 'POST',
@@ -417,6 +426,8 @@ function App() {
                       ? [...prev.slice(0, -1), { role: 'assistant', content: assistantMessage.trim(), id: (Date.now() + 1).toString(), timestamp: Date.now() }]
                       : [systemMessage, { role: 'assistant', content: assistantMessage.trim(), id: (Date.now() + 1).toString(), timestamp: Date.now() }]
                   })
+                  setShowSystemPrompt(true)
+                  setTimeout(() => setShowSystemPrompt(false), 3000)
                 }
               }
             } catch (e) {
@@ -603,6 +614,78 @@ function App() {
     } else {
       setMessages([]);
       localStorage.removeItem('chatMessages');
+      
+      // Run system prompt after clearing if it exists
+      if (settings.systemPrompt) {
+        const systemMessage = {
+          role: 'system',
+          content: settings.systemPrompt,
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          hidden: true
+        };
+        setMessages([systemMessage]);
+        
+        fetch('http://localhost:8000/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: '',
+            systemPrompt: settings.systemPrompt
+          })
+        })
+        .then(response => response.body?.getReader())
+        .then(async reader => {
+          if (!reader) return;
+          
+          let assistantMessage = '';
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            
+            for (let i = 0; i < lines.length - 1; i++) {
+              const line = lines[i].trim();
+              if (!line) continue;
+
+              try {
+                const jsonChunk = JSON.parse(line);
+                if (jsonChunk.message?.content) {
+                  const filteredContent = jsonChunk.message.content
+                    .replace(/<think>[\s\S]*?<\/think>\s*/g, '')
+                    .replace(/^\s*<think>.*?<\/think>\s*/gm, '')
+                    .trim();
+                  
+                  if (filteredContent !== '') {
+                    assistantMessage += filteredContent + ' ';
+                    setMessages([systemMessage, {
+                      role: 'assistant',
+                      content: assistantMessage.trim(),
+                      id: (Date.now() + 1).toString(),
+                      timestamp: Date.now()
+                    }]);
+                  }
+                }
+              } catch (e) {
+                console.debug('Invalid JSON chunk:', line);
+              }
+            }
+            
+            buffer = lines[lines.length - 1];
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          setError('An error occurred while processing the system prompt.');
+          setIsInitializing(true);
+          checkServiceStatus();
+        });
+      }
     }
     setShowConfirmation(false);
     setChatToDelete(null);
@@ -930,7 +1013,6 @@ function App() {
                   value={settings.systemPrompt || ''}
                   onChange={(e) => handleSettingsChange('systemPrompt', e.target.value)}
                   placeholder="Enter a system prompt to be used at the start of each chat..."
-                  rows={4}
                   className="system-prompt-input"
                 />
               </div>
