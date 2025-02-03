@@ -432,6 +432,14 @@
   border-top-left-radius: 4px;
 }
 
+.message.system .message-content {
+  background-color: rgba(255, 107, 0, 0.15);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  color: #FF6B00;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
 .message-content.loading {
   background-color: transparent;
   padding: 0;
@@ -915,7 +923,8 @@ code {
   top: 1rem;
   left: 1rem;
   transform: none;
-  background: rgba(255, 107, 0, 0.1);
+  background: rgba(255, 107, 0, 0.15);
+  border: 1px solid rgba(255, 107, 0, 0.3);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   display: flex;
@@ -1094,7 +1103,8 @@ code {
   top: 1rem;
   left: 1rem;
   transform: none;
-  background: rgba(255, 107, 0, 0.1);
+  background: rgba(255, 107, 0, 0.15);
+  border: 1px solid rgba(255, 107, 0, 0.3);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   display: flex;
@@ -1503,6 +1513,14 @@ code {
 .message.assistant .message-content {
   background-color: #333333;
   border-top-left-radius: 4px;
+}
+
+.message.system .message-content {
+  background-color: rgba(255, 107, 0, 0.15);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  color: #FF6B00;
+  font-weight: 500;
+  border-radius: 8px;
 }
 
 .message-content.loading {
@@ -1980,7 +1998,8 @@ code {
   top: 1rem;
   left: 1rem;
   transform: none;
-  background: rgba(255, 107, 0, 0.1);
+  background: rgba(255, 107, 0, 0.15);
+  border: 1px solid rgba(255, 107, 0, 0.3);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   display: flex;
@@ -2159,7 +2178,8 @@ code {
   top: 1rem;
   left: 1rem;
   transform: none;
-  background: rgba(255, 107, 0, 0.1);
+  background: rgba(255, 107, 0, 0.15);
+  border: 1px solid rgba(255, 107, 0, 0.3);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   display: flex;
