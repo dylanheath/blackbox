@@ -37,6 +37,7 @@ function App() {
   const [showAdvancedModal, setShowAdvancedModal] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => {
     const savedMessages = localStorage.getItem('chatMessages')
     const savedSettings = localStorage.getItem('settings')
@@ -192,16 +193,17 @@ function App() {
       localStorage.setItem('conversations', JSON.stringify([...conversations, newChat]))
     }
     
-    const systemMessage = settings.systemPrompt ? {
-      role: 'system',
-      content: settings.systemPrompt,
-      id: Date.now().toString(),
-      timestamp: Date.now(),
-      hidden: true
-    } : null
-
-    if (systemMessage && settings.systemPrompt) {
+    if (settings.systemPrompt) {
+      const systemMessage = {
+        role: 'system',
+        content: settings.systemPrompt,
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        hidden: true
+      }
       setMessages([systemMessage])
+      setShowSystemPrompt(true)
+      setTimeout(() => setShowSystemPrompt(false), 3000)
       fetch('http://localhost:8000/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -625,66 +627,6 @@ function App() {
           hidden: true
         };
         setMessages([systemMessage]);
-        
-        fetch('http://localhost:8000/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: '',
-            systemPrompt: settings.systemPrompt
-          })
-        })
-        .then(response => response.body?.getReader())
-        .then(async reader => {
-          if (!reader) return;
-          
-          let assistantMessage = '';
-          const decoder = new TextDecoder();
-          let buffer = '';
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            
-            for (let i = 0; i < lines.length - 1; i++) {
-              const line = lines[i].trim();
-              if (!line) continue;
-
-              try {
-                const jsonChunk = JSON.parse(line);
-                if (jsonChunk.message?.content) {
-                  const filteredContent = jsonChunk.message.content
-                    .replace(/<think>[\s\S]*?<\/think>\s*/g, '')
-                    .replace(/^\s*<think>.*?<\/think>\s*/gm, '')
-                    .trim();
-                  
-                  if (filteredContent !== '') {
-                    assistantMessage += filteredContent + ' ';
-                    setMessages([systemMessage, {
-                      role: 'assistant',
-                      content: assistantMessage.trim(),
-                      id: (Date.now() + 1).toString(),
-                      timestamp: Date.now()
-                    }]);
-                  }
-                }
-              } catch (e) {
-                console.debug('Invalid JSON chunk:', line);
-              }
-            }
-            
-            buffer = lines[lines.length - 1];
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          setError('An error occurred while processing the system prompt.');
-          setIsInitializing(true);
-          checkServiceStatus();
-        });
       }
     }
     setShowConfirmation(false);
@@ -695,15 +637,7 @@ function App() {
     setShowConfirmation(false);
   };
 
-  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
 
-  useEffect(() => {
-    if (settings.systemPrompt) {
-      setShowSystemPrompt(true);
-      const timer = setTimeout(() => setShowSystemPrompt(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [settings.systemPrompt]);
 
   return (
     <div className="chat-container">
